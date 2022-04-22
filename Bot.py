@@ -4,6 +4,7 @@ import pyodbc
 import time
 import Key
 import odbc
+import KeyBoard
 import re
 import datetime
 
@@ -42,32 +43,9 @@ def start(n, res=False):
     # Стартовое меню
     bot.send_message(n.chat.id, 'Добро пожаловать в меню ')
     logging.info('MenuActive -' + str(n.chat.id) + '-')
-    # bot.register_next_step_handler(n, st_m)
-    markup = InlineKeyboardMarkup()
-    markup.row_width = 2
-    markup.add(InlineKeyboardButton("Хочу кушац", callback_data='cb_yes'),
-               InlineKeyboardButton("Не хочу кушац", callback_data='cb_no'))
-    bot.send_message(n.chat.id, 'Что хочешь', reply_markup=markup)
-
-
-@bot.callback_query_handler(func=lambda call: True)
-def callback_inline(call):
-    try:
-        if call.message:
-            if call.data == "cb_yes":
-                bot.send_message(call.message.chat.id, "Хати дальше!")
-            if call.data == "cb_no":
-                bot.send_message(call.message.chat.id, "Ну и шо ты тут забыл")
-    except Exception as e:
-        print(repr(e))
-    # # cur.execute("select Recipe_name, id_Recipe from Recipe")
-    # rows = cur.fetchall()
-    # for row in rows:
-    #     bot.send_message(n.chat.id, row.Recipe_name)
-    # for row in rows:
-    #     bot.send_message(n.chat.id, row.id_Recipe)
-    # conn.commit()
-    # logging.info('Request_Succes_DevMode -' + str(n.chat.id) + '-')
+    bot.send_message(n.chat.id, 'Для начала тебе нужно выбрать продукты которые есть у тебя в холодильнике')
+    bot.send_message(n.chat.id, 'Для твоего удобства я разбил все на категории')
+    bot.send_message(n.chat.id, 'Выбирать можно в любом порядке', reply_markup=KeyBoard.get_marcup())
 
 
 # Бесконечный цикл который не дает боту выключиться даже во время
