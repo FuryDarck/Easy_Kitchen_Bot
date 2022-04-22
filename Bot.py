@@ -2,19 +2,20 @@ import telebot
 import logging
 import pyodbc
 import time
+import Key
+import odbc
 import re
 import datetime
 
 from telebot import types
+from telebot.types import InlineKeyboardMarkup
+from telebot.types import InlineKeyboardButton
 
 # id бота
-bot = telebot.TeleBot('5216636821:AAG8XK1ijneG3rtiflQmRRUvxtBlQDG5tFA', parse_mode=None)
+bot = telebot.TeleBot(Key.API_BOT_KEY, parse_mode=None)
 
 # Подключение к базе данных с помощью odbc
-conn = pyodbc.connect("""DRIVER=SQL Server Native Client 11.0;
-DATABASE=Kitchen;
-Trusted_Connection=Yes;
-SERVER=.""")
+conn = pyodbc.connect(odbc.odbc_settings)
 cur = conn.cursor()
 
 
@@ -50,11 +51,20 @@ def start(n, res=False):
     bot.send_message(n.chat.id, 'Добро пожаловать в меню ', reply_markup=markup)
     logging.info('MenuActive -' + str(n.chat.id) + '-')
     #bot.register_next_step_handler(n, st_m)
+    markup = InlineKeyboardMarkup()
+    markup.row_width = 2
+    markup.add(InlineKeyboardButton("Хочу кушац", callback_data="cb_yes"),
+               InlineKeyboardButton("Не хочу кушац", callback_data="cb_no"))
+    bot.send_message(n.chat.id, 'Что хочешь',reply_markup=markup)
 
-    match text:
-        case"Хочу кушац":
-            bot.send_message(n.chat.id, 'Хати дальше')
-    # cur.execute("select Recipe_name, id_Recipe from Recipe")
+    @bot.callback_query_handlers(func=lambda call: True)
+    def callback_query(call):
+        if call.data == "cb_yes":
+            bot.answer_callback_query(call.id, 'Хати дальше')
+        elif call.data == "cb_no":
+            bot.answer_callback_query(call.id, 'Ну и шо ты тут забыл')
+
+    # # cur.execute("select Recipe_name, id_Recipe from Recipe")
     # rows = cur.fetchall()
     # for row in rows:
     #     bot.send_message(n.chat.id, row.Recipe_name)
