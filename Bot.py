@@ -18,7 +18,6 @@ bot = telebot.TeleBot(Key.API_BOT_KEY, parse_mode=None)
 conn = pyodbc.connect(odbc.odbc_settings)
 cur = conn.cursor()
 
-
 # Выбор формата логов и файла в котором они хранятся
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
                     level=logging.INFO,
@@ -37,33 +36,30 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
                     filename='bot.log')
 
 
-
 @bot.message_handler(commands=["Start"])
 def start(n, res=False):
     logging.info('BotSarted -' + str(n.chat.id) + '-')
-# Стартовое меню
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    item1 = types.KeyboardButton("Хочу кушац")
-    item2 = types.KeyboardButton("Обратная связь")
-    markup.add(item1)
-    markup.add(item2)
-
-    bot.send_message(n.chat.id, 'Добро пожаловать в меню ', reply_markup=markup)
+    # Стартовое меню
+    bot.send_message(n.chat.id, 'Добро пожаловать в меню ')
     logging.info('MenuActive -' + str(n.chat.id) + '-')
-    #bot.register_next_step_handler(n, st_m)
+    # bot.register_next_step_handler(n, st_m)
     markup = InlineKeyboardMarkup()
     markup.row_width = 2
-    markup.add(InlineKeyboardButton("Хочу кушац", callback_data="cb_yes"),
-               InlineKeyboardButton("Не хочу кушац", callback_data="cb_no"))
-    bot.send_message(n.chat.id, 'Что хочешь',reply_markup=markup)
+    markup.add(InlineKeyboardButton("Хочу кушац", callback_data='cb_yes'),
+               InlineKeyboardButton("Не хочу кушац", callback_data='cb_no'))
+    bot.send_message(n.chat.id, 'Что хочешь', reply_markup=markup)
 
-    @bot.callback_query_handlers(func=lambda call: True)
-    def callback_query(call):
-        if call.data == "cb_yes":
-            bot.answer_callback_query(call.id, 'Хати дальше')
-        elif call.data == "cb_no":
-            bot.answer_callback_query(call.id, 'Ну и шо ты тут забыл')
 
+@bot.callback_query_handler(func=lambda call: True)
+def callback_inline(call):
+    try:
+        if call.message:
+            if call.data == "cb_yes":
+                bot.send_message(call.message.chat.id, "Хати дальше!")
+            if call.data == "cb_no":
+                bot.send_message(call.message.chat.id, "Ну и шо ты тут забыл")
+    except Exception as e:
+        print(repr(e))
     # # cur.execute("select Recipe_name, id_Recipe from Recipe")
     # rows = cur.fetchall()
     # for row in rows:
