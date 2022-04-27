@@ -1,4 +1,3 @@
-from Bot import cur
 
 
 

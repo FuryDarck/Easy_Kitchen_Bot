@@ -40,10 +40,10 @@ g = []
 
 @bot.message_handler(commands=["Start"])
 def start(n, res=False):
-    logging.info('BotSarted -' + str(n.chat.id) + '-')
+    logging.info('Bot_Sarted -' + str(n.chat.id) + '-')
     # Стартовое меню
     bot.send_message(n.chat.id, 'Добро пожаловать в меню ')
-    logging.info('MenuActive -')
+    logging.info('Menu_Active -')
     bot.send_message(n.chat.id, 'Для начала тебе нужно ввести продукты которые есть у тебя в холодильнике')
     f = KBButton.marcup_start_menu()
     bot.send_message(n.chat.id, 'Вводить можно в любом порядке')
@@ -58,15 +58,18 @@ def callback_inline(call):
             bot.send_message(call.message.chat.id, "Когда продукты закончатся введи 'Это все'",
                              reply_markup=KBButton.res_kb_rep())
             bot.send_message(call.message.chat.id, "Напиши 'Начнем' когда будешь готов ")
+            logging.info('Guide -')
 
 
 @bot.message_handler(content_types=["text"])
 def search_start(g):
     if g.text.strip() == "Начнем":
+        logging.debug('Message_Handeler_Text_Start -')
         pause(g)
 
 # Функция паузы для ввода другого продукта
 def pause(h):
+    logging.debug('Pause -')
     bot.register_next_step_handler(h, search_ingr)
 
 # Функция для поиска блюд и ингредиентов
@@ -76,10 +79,12 @@ def search_ingr(k):
     kur = k.text.strip()
     # Пока пользователь не закончит воодить повторяем
     while kur != "Это все":
+        logging.info('Start_Search_While -')
         kur = k.text.strip()
         # Идем в триггер базы и получаем 1 значение
         cur.execute("Insert into Ingredients values (?)", kur)
         rows = cur.fetchall()
+        log_def.log_search_1(rows)
         for row in rows:
             # Если оно не 0 то такой ингредент есть
             if row.id_ingredients >= 1:
