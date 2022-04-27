@@ -35,6 +35,7 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
 
 s = []
 g = []
+b = []
 
 
 @bot.message_handler(commands=["Start"])
@@ -69,6 +70,8 @@ def pause(h):
 
 
 def search_ingr(k):
+    global g
+    global s
     kur = k.text.strip()
     while kur != "Это все":
         kur = k.text.strip()
@@ -85,23 +88,30 @@ def search_ingr(k):
                 bot.register_next_step_handler(k, search_ingr)
                 pause(kur)
     conn.commit()
-    search_dish(s)
-
-
-def search_dish(s):
-    global g
-    for i in range(len(s)):
-        kur = s[i]
-        cur.execute("Insert into Buffer_Id(id_ingredients) values (?)", kur)
-        rows = cur.fetchall()
-        for row in rows:
-            g.append(row.id_food)
-    s.clear()
-    for i in g:
-        if i not in s:
-            s.append(i)
-    for i in s:
-        print(i)
+    if k.text.strip() == "Это все":
+        for i in range(len(s)):
+            kur = s[i]
+            cur.execute("Insert into Buffer_Id(id_ingredients) values (?)", kur)
+            rows = cur.fetchall()
+            for row in rows:
+                g.append(row.id_food)
+        s.clear()
+        for i in g:
+            if i not in s:
+                s.append(i)
+        for i in s:
+            # Select Recipe.Recipe_name, Kitchen.Kitchen_name, Category.Category_name, Cooking_method.Method_name, Taste_Preferences.Taste_name, Recipe.Description_cooking_method, Recipe.Caloric_content
+            cur.execute("Select Recipe.Recipe_name, Kitchen.Kitchen_name, Category.Category_name, Cooking_method.Method_name, Taste_Preferences.Taste_name, Recipe.Description_cooking_method, Recipe.Caloric_content From Recipe Join Kitchen on Recipe.id_Rec_Kitchen = Kitchen.id_kitchen Join Category on Recipe.id_Rec_Category = Category.id_category Join Cooking_method on Recipe.id_Rec_Cooking_method = Cooking_method.id_Cooking_method Join Taste_Preferences on Recipe.id_Rec_Taste = Taste_Preferences.id_taste Where Recipe.id_Recipe = (?)",i)
+            rows = cur.fetchall()
+            for row in rows:
+                bot.send_message(k.chat.id,"Название: " + row.Recipe_name)
+                bot.send_message(k.chat.id,"Кухня: " + row.Kitchen_name)
+                bot.send_message(k.chat.id,"Категория блюда: " + row.Category_name)
+                bot.send_message(k.chat.id,"Метод: " + row.Method_name)
+                bot.send_message(k.chat.id,"Постное не постное: " + row.Taste_name)
+                bot.send_message(k.chat.id,"Метод приготовления: " + row.Description_cooking_method)
+                bot.send_message(k.chat.id,"Количество калорий: " + row.Caloric_content)
+                bot.send_message(k.chat.id, "Слудующее блюдо")
 
 # Бесконечный цикл который не дает боту выключиться даже во время
 while True:
