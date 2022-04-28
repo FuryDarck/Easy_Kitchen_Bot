@@ -32,7 +32,7 @@ g = []
 def start(n, res=False):
     LoggerHelper.LogInfo('Bot_Started -' + str(n.chat.id) + '-')
     # Стартовое меню
-    bot.send_message(n.chat.id, 'Добро пожаловать в меню ')
+    bot.send_message(n.chat.id, 'Привет')
     LoggerHelper.LogInfo('Menu_Active -')
     bot.send_message(n.chat.id, 'Для начала тебе нужно ввести продукты которые есть у тебя в холодильнике')
     f = KBButton.marcup_start_menu()
@@ -46,17 +46,15 @@ def start(n, res=False):
 def callback_inline(call):
     if call.message:
         if call.data == "sm_yes":
-            bot.send_message(call.message.chat.id, "Когда продукты закончатся введи 'Это все'",
-                             reply_markup=KBButton.res_kb_rep())
-            bot.send_message(call.message.chat.id, "Напиши 'Начнем' когда будешь готов ")
+            bot.send_message(call.message.chat.id, "Нажми 'Начнем' когда будешь готов ", reply_markup=KBButton.marcup_start_menu())
             LoggerHelper.LogInfo('Guide -')
 
 
 @bot.message_handler(content_types=["text"])
-def search_start(g):
-    if g.text.strip() == "Начнем":
+def search_start(a):
+    if a.text.strip() == "Начнем 🤗":
         LoggerHelper.LogDebug('Message_Handeler_Text_Start -')
-        pause(g)
+        pause(a)
 
 
 # Функция паузы для ввода другого продукта
@@ -72,6 +70,9 @@ def search_ingr(k):
     kur = k.text.strip()
     # Пока пользователь не закончит воодить повторяем
     while kur != "Это все":
+        if len(s) == 1:
+            bot.send_message(k.chat.id, "Когда введешь все то нажми 'Это все'",
+                             reply_markup=KBButton.marcup_enter_menu())
         LoggerHelper.LogInfo('Start_Search_While -')
         kur = k.text.strip()
         # Идем в триггер базы и получаем 1 значение
@@ -94,6 +95,7 @@ def search_ingr(k):
     conn.commit()
     # Теперь проверяем на
     if k.text.strip() == "Это все":
+        bot.send_message(k.chat.id, "Ну хорошо, вот что удалось подобрать",reply_markup=KBButton.res_kb_rep())
         if len(s) == 0:
             LoggerHelper.LogCritical('Search_Ingr_Equal -' + str(len(s)) + '-')
         for i in range(len(s)):
