@@ -3,6 +3,7 @@ import logging
 import pyodbc
 import time
 import Key
+import LoggerHelper
 import odbc
 import KBButton
 import log_def
@@ -18,21 +19,10 @@ conn = pyodbc.connect(odbc.odbc_settings)
 cur = conn.cursor()
 
 # Выбор формата логов и файла в котором они хранятся
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
-                    level=logging.INFO,
-                    filename='bot.log')
+LoggerHelper.pathToFile = 'bot_log.md'
+LoggerHelper.ConfigureBaseConfig('green')
+LoggerHelper.levelToLog = logging.INFO
 
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
-                    level=logging.WARNING,
-                    filename='bot.log')
-
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
-                    level=logging.DEBUG,
-                    filename='bot.log')
-
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
-                    level=logging.CRITICAL,
-                    filename='bot.log')
 # Списки для хранения возвращенных из базы значений
 s = []
 g = []
@@ -40,15 +30,15 @@ g = []
 
 @bot.message_handler(commands=["Start"])
 def start(n, res=False):
-    logging.info('Bot_Sarted -' + str(n.chat.id) + '-')
+    LoggerHelper.LogInfo('Bot_Started -' + str(n.chat.id) + '-')
     # Стартовое меню
     bot.send_message(n.chat.id, 'Добро пожаловать в меню ')
-    logging.info('Menu_Active -')
+    LoggerHelper.LogInfo('Menu_Active -')
     bot.send_message(n.chat.id, 'Для начала тебе нужно ввести продукты которые есть у тебя в холодильнике')
     f = KBButton.marcup_start_menu()
     bot.send_message(n.chat.id, 'Вводить можно в любом порядке')
     bot.send_message(n.chat.id, 'Но только по одному продукту в сообщении', reply_markup=KBButton.inline_start_menu())
-    logging.info('KeyBoard_Active -')
+    LoggerHelper.LogInfo('KeyBoard_Active -')
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -59,19 +49,19 @@ def callback_inline(call):
             bot.send_message(call.message.chat.id, "Когда продукты закончатся введи 'Это все'",
                              reply_markup=KBButton.res_kb_rep())
             bot.send_message(call.message.chat.id, "Напиши 'Начнем' когда будешь готов ")
-            logging.info('Guide -')
+            LoggerHelper.LogInfo('Guide -')
 
 
 @bot.message_handler(content_types=["text"])
 def search_start(g):
     if g.text.strip() == "Начнем":
-        logging.debug('Message_Handeler_Text_Start -')
+        LoggerHelper.LogDebug('Message_Handeler_Text_Start -')
         pause(g)
 
 
 # Функция паузы для ввода другого продукта
 def pause(h):
-    logging.debug('Pause -')
+    LoggerHelper.LogDebug('Pause -')
     bot.register_next_step_handler(h, search_ingr)
 
 
@@ -82,7 +72,7 @@ def search_ingr(k):
     kur = k.text.strip()
     # Пока пользователь не закончит воодить повторяем
     while kur != "Это все":
-        logging.info('Start_Search_While -')
+        LoggerHelper.LogInfo('Start_Search_While -')
         kur = k.text.strip()
         # Идем в триггер базы и получаем 1 значение
         cur.execute("Insert into Ingredients values (?)", kur)
@@ -105,7 +95,7 @@ def search_ingr(k):
     # Теперь проверяем на
     if k.text.strip() == "Это все":
         if len(s) == 0:
-            logging.critical('Search_Ingr_Equal -' + str(len(s)) + '-')
+            LoggerHelper.LogCritical('Search_Ingr_Equal -' + str(len(s)) + '-')
         for i in range(len(s)):
             kur = s[i]
             cur.execute("Insert into Buffer_Id(id_ingredients) values (?)", kur)
@@ -125,7 +115,7 @@ def search_ingr(k):
                 i)
             rows = cur.fetchall()
             for row in rows:
-                logging.info('Output_Screen -' + str(len(s)) + '-')
+                LoggerHelper.LogInfo('Output_Screen -' + str(len(s)) + '-')
                 bot.send_message(k.chat.id, "Название: " + row.Recipe_name)
                 bot.send_message(k.chat.id, "Кухня: " + row.Kitchen_name)
                 bot.send_message(k.chat.id, "Категория блюда: " + row.Category_name)
