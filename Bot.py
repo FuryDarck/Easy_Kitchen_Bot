@@ -48,6 +48,7 @@ def start(n, res=False):
     f = KBButton.marcup_start_menu()
     bot.send_message(n.chat.id, 'Вводить можно в любом порядке')
     bot.send_message(n.chat.id, 'Но только по одному продукту в сообщении', reply_markup=KBButton.inline_start_menu())
+    logging.info('KeyBoard_Active -')
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -101,6 +102,8 @@ def search_ingr(k):
     conn.commit()
     # Теперь проверяем на
     if k.text.strip() == "Это все":
+        if len(s) == 0:
+            logging.critical('Search_Ingr_Equal -'+str(len(s))+'-')
         for i in range(len(s)):
             kur = s[i]
             cur.execute("Insert into Buffer_Id(id_ingredients) values (?)", kur)
