@@ -68,10 +68,12 @@ def search_start(g):
         logging.debug('Message_Handeler_Text_Start -')
         pause(g)
 
+
 # Функция паузы для ввода другого продукта
 def pause(h):
     logging.debug('Pause -')
     bot.register_next_step_handler(h, search_ingr)
+
 
 # Функция для поиска блюд и ингредиентов
 def search_ingr(k):
@@ -103,7 +105,7 @@ def search_ingr(k):
     # Теперь проверяем на
     if k.text.strip() == "Это все":
         if len(s) == 0:
-            logging.critical('Search_Ingr_Equal -'+str(len(s))+'-')
+            logging.critical('Search_Ingr_Equal -' + str(len(s)) + '-')
         for i in range(len(s)):
             kur = s[i]
             cur.execute("Insert into Buffer_Id(id_ingredients) values (?)", kur)
@@ -118,17 +120,21 @@ def search_ingr(k):
                 s.append(i)
         # Выводим все что связано с блюдом
         for i in s:
-            cur.execute("Select Recipe.Recipe_name, Kitchen.Kitchen_name, Category.Category_name, Cooking_method.Method_name, Taste_Preferences.Taste_name, Recipe.Description_cooking_method, Recipe.Caloric_content From Recipe Join Kitchen on Recipe.id_Rec_Kitchen = Kitchen.id_kitchen Join Category on Recipe.id_Rec_Category = Category.id_category Join Cooking_method on Recipe.id_Rec_Cooking_method = Cooking_method.id_Cooking_method Join Taste_Preferences on Recipe.id_Rec_Taste = Taste_Preferences.id_taste Where Recipe.id_Recipe = (?)",i)
+            cur.execute(
+                "Select Recipe.Recipe_name, Kitchen.Kitchen_name, Category.Category_name, Cooking_method.Method_name, Taste_Preferences.Taste_name, Recipe.Description_cooking_method, Recipe.Caloric_content From Recipe Join Kitchen on Recipe.id_Rec_Kitchen = Kitchen.id_kitchen Join Category on Recipe.id_Rec_Category = Category.id_category Join Cooking_method on Recipe.id_Rec_Cooking_method = Cooking_method.id_Cooking_method Join Taste_Preferences on Recipe.id_Rec_Taste = Taste_Preferences.id_taste Where Recipe.id_Recipe = (?)",
+                i)
             rows = cur.fetchall()
             for row in rows:
-                bot.send_message(k.chat.id,"Название: " + row.Recipe_name)
-                bot.send_message(k.chat.id,"Кухня: " + row.Kitchen_name)
-                bot.send_message(k.chat.id,"Категория блюда: " + row.Category_name)
-                bot.send_message(k.chat.id,"Метод: " + row.Method_name)
-                bot.send_message(k.chat.id,"Постное не постное: " + row.Taste_name)
-                bot.send_message(k.chat.id,"Метод приготовления: " + row.Description_cooking_method)
-                bot.send_message(k.chat.id,"Количество калорий: " + row.Caloric_content)
+                logging.info('Output_Screen -' + str(len(s)) + '-')
+                bot.send_message(k.chat.id, "Название: " + row.Recipe_name)
+                bot.send_message(k.chat.id, "Кухня: " + row.Kitchen_name)
+                bot.send_message(k.chat.id, "Категория блюда: " + row.Category_name)
+                bot.send_message(k.chat.id, "Метод: " + row.Method_name)
+                bot.send_message(k.chat.id, "Постное не постное: " + row.Taste_name)
+                bot.send_message(k.chat.id, "Метод приготовления: " + row.Description_cooking_method)
+                bot.send_message(k.chat.id, "Количество калорий: " + row.Caloric_content)
                 bot.send_message(k.chat.id, "Слудующее блюдо")
+
 
 # Бесконечный цикл который не дает боту выключиться даже во время
 while True:
