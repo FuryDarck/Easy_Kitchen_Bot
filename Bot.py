@@ -32,7 +32,7 @@ g = []
 def start(n, res=False):
     LoggerHelper.LogInfo('Bot_Started -' + str(n.chat.id) + '-')
     # Стартовое меню
-    bot.send_message(n.chat.id, 'Привет')
+    bot.send_message(n.chat.id, 'Привет', reply_markup=KBButton.res_kb_rep())
     LoggerHelper.LogInfo('Menu_Active -')
     bot.send_message(n.chat.id, 'Для начала тебе нужно ввести продукты которые есть у тебя в холодильнике')
     f = KBButton.marcup_start_menu()
@@ -126,8 +126,14 @@ def search_ingr(k):
                 bot.send_message(k.chat.id, "Метод: " + row.Method_name)
                 bot.send_message(k.chat.id, "Постное не постное: " + row.Taste_name)
                 bot.send_message(k.chat.id, "Метод приготовления: " + row.Description_cooking_method)
-                bot.send_message(k.chat.id, "Количество калорий: " + row.Caloric_content)
+                #bot.send_message(k.chat.id, "Количество калорий: " + row.Caloric_content)
                 bot.send_message(k.chat.id, "Слудующее блюдо")
+        s.clear()
+        g.clear()
+        bot.send_message(k.chat.id, "Ты можешь ввести другие ингредиенты",
+                         reply_markup=KBButton.res_kb_rep())
+        bot.send_message(k.chat.id, "Или выбирать блюда из категорий",
+                         reply_markup=KBButton.inline_start_menu())
 
 
 # Бесконечный цикл который не дает боту выключиться даже во время
