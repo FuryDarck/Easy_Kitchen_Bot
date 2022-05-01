@@ -39,6 +39,8 @@ def start(n, res=False):
     bot.send_message(n.chat.id, 'Вводить можно в любом порядке')
     bot.send_message(n.chat.id, 'Но только по одному продукту в сообщении', reply_markup=KBButton.inline_start_menu())
     LoggerHelper.LogInfo('KeyBoard_Active -')
+    s.clear()
+    g.clear()
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -51,12 +53,12 @@ def callback_inline(call):
 
 
 @bot.message_handler(content_types=["text"])
-def search_start(a):
-    if a.text.strip() == "Начнем":
-        bot.send_message(a.chat.id, "Отлично можешь начинать вводить, но напоминаю что только по 1 продукту в сообщении")
-        bot.send_message(a.chat.id, "Когда введешь все то нажми 'Это все'",reply_markup=KBButton.marcup_enter_menu())
+def search_start(h):
+    if h.text.strip() == "Начнем":
+        bot.send_message(h.chat.id, "Отлично можешь начинать вводить, но напоминаю что только по 1 продукту в сообщении")
+        bot.send_message(h.chat.id, "Когда введешь все то нажми 'Это все'", reply_markup=KBButton.marcup_enter_menu())
         LoggerHelper.LogDebug('Message_Handeler_Text_Start -')
-        pause(a)
+        pause(h)
 
 
 # Функция паузы для ввода другого продукта
@@ -64,16 +66,15 @@ def pause(h):
     LoggerHelper.LogDebug('Pause -')
     bot.register_next_step_handler(h, search_ingr)
 
-
 # Функция для поиска блюд и ингредиентов
-def search_ingr(k):
+def search_ingr(h):
     global g
     global s
-    kur = k.text.strip()
+    kur = h.text.strip()
     # Пока пользователь не закончит воодить повторяем
     while kur != "Это все":
         LoggerHelper.LogInfo('Start_Search_While -')
-        kur = k.text.strip()
+        kur = h.text.strip()
         # Идем в триггер базы и получаем 1 значение
         cur.execute("Insert into Ingredients values (?)", kur)
         rows = cur.fetchall()
@@ -83,23 +84,24 @@ def search_ingr(k):
             if row.id_ingredients >= 1:
                 # Запиываем его в список
                 s.append(row.id_ingredients)
-                bot.send_message(k.chat.id, "Есть такой")
-                bot.register_next_step_handler(k, search_ingr)
+                bot.send_message(h.chat.id, "Есть такой")
+                bot.register_next_step_handler(h, search_ingr)
                 pause(kur)
             else:
                 # Просто оповещаем и ждем новый ингредиент
-                bot.send_message(k.chat.id, "Нету такого")
-                bot.register_next_step_handler(k, search_ingr)
+                bot.send_message(h.chat.id, "Нету такого")
+                bot.register_next_step_handler(h, search_ingr)
                 pause(kur)
     conn.commit()
     # Теперь проверяем на
-    if k.text.strip() == "Это все":
+    if h.text.strip() == "Это все":
         if len(s) == 0:
-            bot.send_message(k.chat.id, "Ты ничего не ввел (", reply_markup=KBButton.res_kb_rep())
-            bot.send_message(k.chat.id, "Может ты хочешь просто выбрать блюдо, вернись в меню и выбери", reply_markup=KBButton.inline_start_menu())
+            bot.send_message(h.chat.id, "Ты ничего не ввел (", reply_markup=KBButton.res_kb_rep())
+            bot.send_message(h.chat.id, "Может ты хочешь просто выбрать блюдо, вернись в меню и выбери", reply_markup=KBButton.inline_start_menu())
+            h = 1
             LoggerHelper.LogError('Search_Ingr_Equal -' + str(len(s)) + '-')
         else:
-            bot.send_message(k.chat.id, "Ну хорошо, вот что удалось подобрать", reply_markup=KBButton.res_kb_rep())
+            bot.send_message(h.chat.id, "Ну хорошо, вот что удалось подобрать", reply_markup=KBButton.res_kb_rep())
         for i in range(len(s)):
             kur = s[i]
             cur.execute("Insert into Buffer_Id(id_ingredients) values (?)", kur)
@@ -120,20 +122,22 @@ def search_ingr(k):
             rows = cur.fetchall()
             for row in rows:
                 LoggerHelper.LogInfo('Output_Screen -' + str(len(s)) + '-')
-                bot.send_message(k.chat.id, "Название: " + row.Recipe_name)
-                bot.send_message(k.chat.id, "Кухня: " + row.Kitchen_name)
-                bot.send_message(k.chat.id, "Категория блюда: " + row.Category_name)
-                bot.send_message(k.chat.id, "Метод: " + row.Method_name)
-                bot.send_message(k.chat.id, "Постное не постное: " + row.Taste_name)
-                bot.send_message(k.chat.id, "Метод приготовления: " + row.Description_cooking_method)
+                bot.send_message(h.chat.id, "Название: " + row.Recipe_name)
+                bot.send_message(h.chat.id, "Кухня: " + row.Kitchen_name)
+                bot.send_message(h.chat.id, "Категория блюда: " + row.Category_name)
+                bot.send_message(h.chat.id, "Метод: " + row.Method_name)
+                bot.send_message(h.chat.id, "Постное не постное: " + row.Taste_name)
+                bot.send_message(h.chat.id, "Метод приготовления: " + row.Description_cooking_method)
                 #bot.send_message(k.chat.id, "Количество калорий: " + row.Caloric_content)
-                bot.send_message(k.chat.id, "Слудующее блюдо")
+                bot.send_message(h.chat.id, "Слудующее блюдо")
+                h = 0
         s.clear()
         g.clear()
-        bot.send_message(k.chat.id, "Ты можешь ввести другие ингредиенты",
-                         reply_markup=KBButton.res_kb_rep())
-        bot.send_message(k.chat.id, "Или выбирать блюда из категорий",
-                         reply_markup=KBButton.inline_start_menu())
+        if h == 0:
+            bot.send_message(h.chat.id, "Ты можешь ввести другие ингредиенты",
+                             reply_markup=KBButton.res_kb_rep())
+            bot.send_message(h.chat.id, "Или выбирать блюда из категорий",
+                             reply_markup=KBButton.inline_start_menu())
 
 
 # Бесконечный цикл который не дает боту выключиться даже во время
