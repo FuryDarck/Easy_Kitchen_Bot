@@ -7,9 +7,7 @@ import LoggerHelper
 import odbc
 import KBButton
 import log_def
-import SQL
-import re
-import datetime
+
 
 # id бота
 bot = telebot.TeleBot(Key.API_BOT_KEY, parse_mode=None)
@@ -28,9 +26,12 @@ s = []
 g = []
 b = []
 
+st = 0
+
 
 @bot.message_handler(commands=["start"])
 def start(n, res=False):
+    global st
     LoggerHelper.LogInfo('Bot_Started -' + str(n.chat.id) + '-')
     # Стартовое меню
     bot.send_message(n.chat.id, 'Привет', reply_markup=KBButton.res_kb_rep())
@@ -43,6 +44,7 @@ def start(n, res=False):
     b.clear()
     g.clear()
     s.clear()
+    st = 0
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -51,12 +53,14 @@ def callback_inline(call):
     if call.message:
         if call.data == "sm_yes":
             bot.send_message(call.message.chat.id, "Напиши 'Начнем' когда будешь готов ")
+            global st
+            st = 1
             LoggerHelper.LogInfo('Guide -')
 
 
 @bot.message_handler(content_types=["text"])
 def search_start(h):
-    if h.text.strip() == "Начнем":
+    if h.text.strip() == "Начнем" and st == 1:
         bot.send_message(h.chat.id, "Отлично можешь начинать вводить, но напоминаю что только по 1 продукту в сообщении")
         bot.send_message(h.chat.id, "Когда введешь все то нажми 'Это все'", reply_markup=KBButton.marcup_enter_menu())
         LoggerHelper.LogDebug('Message_Handeler_Text_Start -')
@@ -72,6 +76,7 @@ def pause(h):
 def search_ingr(h):
     global g
     global s
+    global st
     kur = h.text.strip()
     # Пока пользователь не закончит вводить повторяем
     while kur != "Это все":
@@ -86,12 +91,12 @@ def search_ingr(h):
             if row.id_ingredients >= 1:
                 # Запиываем его в список
                 s.append(row.id_ingredients)
-                bot.send_message(h.chat.id, "Есть такой")
+                bot.send_message(h.chat.id, "Такой продукт есть у нас в базе, вводи следующий")
                 bot.register_next_step_handler(h, search_ingr)
                 pause(kur)
             else:
                 # Просто оповещаем и ждем новый ингредиент
-                bot.send_message(h.chat.id, "Нету такого")
+                bot.send_message(h.chat.id, "Такого продукта нет в нашей базе( Попробуй ввести другой")
                 bot.register_next_step_handler(h, search_ingr)
                 pause(kur)
     conn.commit()
@@ -149,6 +154,7 @@ def search_ingr(h):
         b.clear()
         g.clear()
         s.clear()
+        st = 0
         if h == 0:
             bot.send_message(h.chat.id, "Ты можешь ввести другие ингредиенты",
                              reply_markup=KBButton.res_kb_rep())
