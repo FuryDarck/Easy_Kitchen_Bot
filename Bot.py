@@ -26,6 +26,7 @@ LoggerHelper.levelToLog = logging.INFO
 # Списки для хранения возвращенных из базы значений
 s = []
 g = []
+b = []
 
 
 @bot.message_handler(commands=["start"])
@@ -39,8 +40,9 @@ def start(n, res=False):
     bot.send_message(n.chat.id, 'Вводить можно в любом порядке')
     bot.send_message(n.chat.id, 'Но только по одному продукту в сообщении', reply_markup=KBButton.inline_start_menu())
     LoggerHelper.LogInfo('KeyBoard_Active -')
-    s.clear()
+    b.clear()
     g.clear()
+    s.clear()
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -71,7 +73,7 @@ def search_ingr(h):
     global g
     global s
     kur = h.text.strip()
-    # Пока пользователь не закончит воодить повторяем
+    # Пока пользователь не закончит вводить повторяем
     while kur != "Это все":
         LoggerHelper.LogInfo('Start_Search_While -')
         kur = h.text.strip()
@@ -93,7 +95,7 @@ def search_ingr(h):
                 bot.register_next_step_handler(h, search_ingr)
                 pause(kur)
     conn.commit()
-    # Теперь проверяем на
+    # Теперь проверяем на то что пользователь хоть что то ввел
     if h.text.strip() == "Это все":
         if len(s) == 0:
             bot.send_message(h.chat.id, "Ты ничего не ввел (", reply_markup=KBButton.res_kb_rep())
@@ -109,13 +111,26 @@ def search_ingr(h):
             # Записаваем id блюда в другой список
             for row in rows:
                 g.append(row.id_food)
-        s.clear()
         # Перезаписываем в старый список id блюда без повторений
         for i in g:
-            if i not in s:
-                s.append(i)
+            if i not in b:
+                b.append(i)
+        g.clear()
+        # Убираем лишние блюда которые нам не подходят
+        for i in b:
+            cnt = 0
+            kur = i
+            cur.execute("Select id_ingredients From Buffer_Id Where id_food = (?)", kur)
+            rows = cur.fetchall()
+            ren = len(rows)
+            for j in s:
+                for row in rows:
+                    if j == row.id_ingredients:
+                        cnt += 1
+            if cnt == ren:
+                g.append(i)
         # Выводим все что связано с блюдом
-        for i in s:
+        for i in g:
             cur.execute(
                 "Select Recipe.Recipe_name, Kitchen.Kitchen_name, Category.Category_name, Cooking_method.Method_name, Taste_Preferences.Taste_name, Recipe.Description_cooking_method, Recipe.Caloric_content From Recipe Join Kitchen on Recipe.id_Rec_Kitchen = Kitchen.id_kitchen Join Category on Recipe.id_Rec_Category = Category.id_category Join Cooking_method on Recipe.id_Rec_Cooking_method = Cooking_method.id_Cooking_method Join Taste_Preferences on Recipe.id_Rec_Taste = Taste_Preferences.id_taste Where Recipe.id_Recipe = (?)",
                 i)
@@ -131,8 +146,9 @@ def search_ingr(h):
                 #bot.send_message(k.chat.id, "Количество калорий: " + row.Caloric_content)
                 bot.send_message(h.chat.id, "Слудующее блюдо")
                 h = 0
-        s.clear()
+        b.clear()
         g.clear()
+        s.clear()
         if h == 0:
             bot.send_message(h.chat.id, "Ты можешь ввести другие ингредиенты",
                              reply_markup=KBButton.res_kb_rep())
