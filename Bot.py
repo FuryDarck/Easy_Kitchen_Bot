@@ -135,7 +135,9 @@ def search_ingr(h):
             if cnt == ren:
                 g.append(i)
         # Выводим все что связано с блюдом
+        coun = len(g)
         for i in g:
+            coun -= 1
             cur.execute(
                 "Select Recipe.Recipe_name, Kitchen.Kitchen_name, Category.Category_name, Cooking_method.Method_name, Taste_Preferences.Taste_name, Recipe.Description_cooking_method, Recipe.Caloric_content From Recipe Join Kitchen on Recipe.id_Rec_Kitchen = Kitchen.id_kitchen Join Category on Recipe.id_Rec_Category = Category.id_category Join Cooking_method on Recipe.id_Rec_Cooking_method = Cooking_method.id_Cooking_method Join Taste_Preferences on Recipe.id_Rec_Taste = Taste_Preferences.id_taste Where Recipe.id_Recipe = (?)",
                 i)
@@ -145,11 +147,12 @@ def search_ingr(h):
                 bot.send_message(h.chat.id, "Название: " + row.Recipe_name)
                 bot.send_message(h.chat.id, "Кухня: " + row.Kitchen_name)
                 bot.send_message(h.chat.id, "Категория блюда: " + row.Category_name)
-                bot.send_message(h.chat.id, "Метод: " + row.Method_name)
-                bot.send_message(h.chat.id, "Постное не постное: " + row.Taste_name)
+                #bot.send_message(h.chat.id, "Метод: " + row.Method_name)
+                bot.send_message(h.chat.id, row.Taste_name)
                 bot.send_message(h.chat.id, "Метод приготовления: " + row.Description_cooking_method)
                 #bot.send_message(k.chat.id, "Количество калорий: " + row.Caloric_content)
-                bot.send_message(h.chat.id, "Слудующее блюдо")
+                if coun != 0:
+                    bot.send_message(h.chat.id, "Слудующее блюдо")
                 h = 0
         b.clear()
         g.clear()
