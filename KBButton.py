@@ -29,5 +29,5 @@ def inline_start_menu():
 
 
 def res_kb_rep():
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup = types.ReplyKeyboardRemove()
     return markup
