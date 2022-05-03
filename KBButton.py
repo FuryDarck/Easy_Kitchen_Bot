@@ -22,8 +22,9 @@ def marcup_enter_menu():
 
 def inline_start_menu():
     markup = InlineKeyboardMarkup()
-    markup.row_width = 1
-    markup.add(InlineKeyboardButton("Вести продукты", callback_data='sm_yes'))
+    markup.row_width = 2
+    markup.add(InlineKeyboardButton("Вести продукты", callback_data='sm_yes'),
+               InlineKeyboardButton("Выбрать случайное блюдо", callback_data='sm_rand'))
     LoggerHelper.LogInfo('KeyBoard_Inline_StartMenu_Load -')
     return markup
 

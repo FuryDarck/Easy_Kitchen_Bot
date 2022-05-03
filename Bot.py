@@ -4,9 +4,11 @@ import pyodbc
 import time
 import Key
 import LoggerHelper
+import SQL
 import odbc
 import KBButton
 import log_def
+import random
 
 # id бота
 bot = telebot.TeleBot(Key.API_BOT_KEY, parse_mode=None)
@@ -55,6 +57,28 @@ def callback_inline(call):
             global st
             st = 1
             LoggerHelper.LogInfo('Guide -')
+        if call.data == "sm_rand":
+            bot.send_message(call.message.chat.id, "Cейчас подберем тебе что нибудь ")
+            ing = random.randint(0, 2)
+            cur.execute(
+                "Select Recipe.Recipe_name, Kitchen.Kitchen_name, Category.Category_name, Cooking_method.Method_name, Taste_Preferences.Taste_name, Recipe.Description_cooking_method, Recipe.Caloric_content From Recipe Join Kitchen on Recipe.id_Rec_Kitchen = Kitchen.id_kitchen Join Category on Recipe.id_Rec_Category = Category.id_category Join Cooking_method on Recipe.id_Rec_Cooking_method = Cooking_method.id_Cooking_method Join Taste_Preferences on Recipe.id_Rec_Taste = Taste_Preferences.id_taste Where Recipe.id_Recipe = (?)",
+                ing)
+            rows = cur.fetchall()
+            for row in rows:
+                LoggerHelper.LogInfo('Output_Screen -')
+                bot.send_message(call.message.chat.id, "Название: " + str(row.Recipe_name))
+                bot.send_message(call.message.chat.id, "Кухня: " + str(row.Kitchen_name))
+                bot.send_message(call.message.chat.id, "Категория блюда: " + str(row.Category_name))
+                # bot.send_message(h.chat.id, "Метод: " + row.Method_name)
+                bot.send_message(call.message.chat.id, str(row.Taste_name))
+                bot.send_message(call.message.chat.id, "Метод приготовления: " + str(row.Description_cooking_method))
+                bot.send_message(call.message.chat.id, "Количество калорий: " + str(row.Caloric_content))
+            bot.send_message(call.message.chat.id, "Ты можешь ввести другие продукты",
+                             reply_markup=KBButton.res_kb_rep())
+            bot.send_message(call.message.chat.id, "Или выбирать блюда из категорий",
+                             reply_markup=KBButton.inline_start_menu())
+            LoggerHelper.LogInfo('Random_Search -')
+
 
 
 @bot.message_handler(content_types=["text"])
