@@ -8,7 +8,6 @@ import odbc
 import KBButton
 import log_def
 
-
 # id бота
 bot = telebot.TeleBot(Key.API_BOT_KEY, parse_mode=None)
 
@@ -61,7 +60,8 @@ def callback_inline(call):
 @bot.message_handler(content_types=["text"])
 def search_start(h):
     if h.text.strip() == "Начнем" and st == 1:
-        bot.send_message(h.chat.id, "Отлично можешь начинать вводить, но напоминаю что только по 1 продукту в сообщении")
+        bot.send_message(h.chat.id,
+                         "Отлично можешь начинать вводить, но напоминаю что только по 1 продукту в сообщении")
         bot.send_message(h.chat.id, "Когда введешь все то нажми 'Это все'", reply_markup=KBButton.marcup_enter_menu())
         LoggerHelper.LogDebug('Message_Handeler_Text_Start -')
         pause(h)
@@ -71,6 +71,7 @@ def search_start(h):
 def pause(h):
     LoggerHelper.LogDebug('Pause -')
     bot.register_next_step_handler(h, search_ingr)
+
 
 # Функция для поиска блюд и ингредиентов
 def search_ingr(h):
@@ -85,13 +86,26 @@ def search_ingr(h):
         # Идем в триггер базы и получаем 1 значение
         cur.execute("Insert into Ingredients values (?)", kur)
         rows = cur.fetchall()
+        count = 0
         log_def.log_search_1(rows)
         for row in rows:
             # Если оно не 0 то такой ингредент есть
             if row.id_ingredients >= 1:
                 # Запиываем его в список
-                s.append(row.id_ingredients)
-                bot.send_message(h.chat.id, "Такой продукт есть у нас в базе, вводи следующий")
+                if len(s) != 0:
+                    for i in s:
+                        if i == row.id_ingredients:
+                            count += 1
+                            # s.append(row.id_ingredients)
+                    if count == 0:
+                        s.append(row.id_ingredients)
+                        bot.send_message(h.chat.id, "Такой продукт есть у нас в базе, вводи следующий")
+                    elif count > 0:
+                        count = 0
+                        bot.send_message(h.chat.id, "Мы уже запомнили этот продукт, не волнуйтесь мы его не потеряем )")
+                else:
+                    s.append(row.id_ingredients)
+                    bot.send_message(h.chat.id, "Такой продукт есть у нас в базе, вводи следующий")
                 bot.register_next_step_handler(h, search_ingr)
                 pause(kur)
             else:
@@ -104,7 +118,8 @@ def search_ingr(h):
     if h.text.strip() == "Это все":
         if len(s) == 0:
             bot.send_message(h.chat.id, "Ты ничего не ввел (", reply_markup=KBButton.res_kb_rep())
-            bot.send_message(h.chat.id, "Может ты хочешь просто выбрать блюдо, вернись в меню и выбери", reply_markup=KBButton.inline_start_menu())
+            bot.send_message(h.chat.id, "Может ты хочешь просто выбрать блюдо, вернись в меню и выбери",
+                             reply_markup=KBButton.inline_start_menu())
             h = 1
             LoggerHelper.LogError('Search_Ingr_Equal -' + str(len(s)) + '-')
         else:
@@ -144,13 +159,13 @@ def search_ingr(h):
             rows = cur.fetchall()
             for row in rows:
                 LoggerHelper.LogInfo('Output_Screen -' + str(len(s)) + '-')
-                bot.send_message(h.chat.id, "Название: " + row.Recipe_name)
-                bot.send_message(h.chat.id, "Кухня: " + row.Kitchen_name)
-                bot.send_message(h.chat.id, "Категория блюда: " + row.Category_name)
-                #bot.send_message(h.chat.id, "Метод: " + row.Method_name)
-                bot.send_message(h.chat.id, row.Taste_name)
-                bot.send_message(h.chat.id, "Метод приготовления: " + row.Description_cooking_method)
-                #bot.send_message(k.chat.id, "Количество калорий: " + row.Caloric_content)
+                bot.send_message(h.chat.id, "Название: " + str(row.Recipe_name))
+                bot.send_message(h.chat.id, "Кухня: " + str(row.Kitchen_name))
+                bot.send_message(h.chat.id, "Категория блюда: " + str(row.Category_name))
+                # bot.send_message(h.chat.id, "Метод: " + row.Method_name)
+                bot.send_message(h.chat.id, str(row.Taste_name))
+                bot.send_message(h.chat.id, "Метод приготовления: " + str(row.Description_cooking_method))
+                bot.send_message(h.chat.id, "Количество калорий: " + str(row.Caloric_content))
                 if coun != 0:
                     bot.send_message(h.chat.id, "Слудующее блюдо")
                 h = 0
