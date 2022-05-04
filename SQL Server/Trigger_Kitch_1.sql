@@ -6,14 +6,9 @@ Begin
 Declare @Us NVARCHAR(30)
 Declare @d int
 --Set @d = 953
-Set @d = 953 --вовод на то, что нету такого
+Set @d = 953 --пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 Set @Us = (Select ingredient_name From inserted)
 
-If Exists((Select * From Ingredients Where ingredient_name =(Select @Us From inserted)))
-Begin
-Select id_ingredients From Ingredients
-Where ingredient_name =(Select @Us From inserted)
-End
 
 Else
 Begin
