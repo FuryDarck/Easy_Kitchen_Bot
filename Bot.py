@@ -4,7 +4,7 @@ import pyodbc
 import time
 import Key
 import LoggerHelper
-import SQL
+import SQLpy
 import odbc
 import KBButton
 import log_def
@@ -59,13 +59,16 @@ def callback_inline(call):
             LoggerHelper.LogInfo('Guide -')
         if call.data == "sm_rand":
             bot.send_message(call.message.chat.id, "Cейчас подберем тебе что нибудь ")
-            ing = random.randint(0, 2)
+            ing = random.randint(1, 61)
             cur.execute(
                 "Select Recipe.Recipe_name, Kitchen.Kitchen_name, Category.Category_name, Cooking_method.Method_name, Taste_Preferences.Taste_name, Recipe.Description_cooking_method, Recipe.Caloric_content From Recipe Join Kitchen on Recipe.id_Rec_Kitchen = Kitchen.id_kitchen Join Category on Recipe.id_Rec_Category = Category.id_category Join Cooking_method on Recipe.id_Rec_Cooking_method = Cooking_method.id_Cooking_method Join Taste_Preferences on Recipe.id_Rec_Taste = Taste_Preferences.id_taste Where Recipe.id_Recipe = (?)",
                 ing)
             rows = cur.fetchall()
             for row in rows:
                 LoggerHelper.LogInfo('Output_Screen -')
+                photo1 = open('Photo/'+str(ing)+'.jpg', 'rb')
+                #print('Photo/' + str(ing) + '.jpg')
+                bot.send_photo(call.message.chat.id, photo1)
                 bot.send_message(call.message.chat.id, "Название: " + str(row.Recipe_name))
                 bot.send_message(call.message.chat.id, "Кухня: " + str(row.Kitchen_name))
                 bot.send_message(call.message.chat.id, "Категория блюда: " + str(row.Category_name))
@@ -110,6 +113,7 @@ def search_ingr(h):
         # Идем в триггер базы и получаем 1 значение
         cur.execute("Insert into Ingredients values (?)", kur)
         rows = cur.fetchall()
+       #SQLpy.testjhed(rows)
         count = 0
         log_def.log_search_1(rows)
         for row in rows:
@@ -149,8 +153,8 @@ def search_ingr(h):
         else:
             bot.send_message(h.chat.id, "Ну хорошо, вот что удалось найти по твоим продуктам", reply_markup=KBButton.res_kb_rep())
         for i in range(len(s)):
-            kur = s[i]
-            cur.execute("Insert into Buffer_Id(id_ingredients) values (?)", kur)
+            kur = s[i] + 1
+            cur.execute("Select id_food From Buffer_Id where id_ingredients = (?)", kur)
             rows = cur.fetchall()
             # Записаваем id блюда в другой список
             for row in rows:
@@ -169,7 +173,7 @@ def search_ingr(h):
             ren = len(rows)
             for j in s:
                 for row in rows:
-                    if j == row.id_ingredients:
+                    if j+1 == row.id_ingredients:
                         cnt += 1
             if cnt == ren:
                 LoggerHelper.LogInfo('Dish_Found -')
@@ -186,6 +190,9 @@ def search_ingr(h):
             rows = cur.fetchall()
             for row in rows:
                 LoggerHelper.LogInfo('Output_Screen -')
+                photo1 = open('Photo/' + str(i) + '.jpg', 'rb')
+                # print('Photo/' + str(ing) + '.jpg')
+                bot.send_photo(h.chat.id, photo1)
                 bot.send_message(h.chat.id, "Название: " + str(row.Recipe_name))
                 bot.send_message(h.chat.id, "Кухня: " + str(row.Kitchen_name))
                 bot.send_message(h.chat.id, "Категория блюда: " + str(row.Category_name))
