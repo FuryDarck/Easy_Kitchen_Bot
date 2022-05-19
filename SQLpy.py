@@ -12,3 +12,7 @@ def rnd_dish(rows, h):
         bot.send_message(h, str(row.Taste_name))
         bot.send_message(h, "Метод приготовления: " + str(row.Description_cooking_method))
         bot.send_message(h, "Количество калорий: " + str(row.Caloric_content))
+
+def testjhed(r):
+    for i in r:
+        print(i.id_ingredient)

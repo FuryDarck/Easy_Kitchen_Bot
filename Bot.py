@@ -4,7 +4,6 @@ import pyodbc
 import time
 import Key
 import LoggerHelper
-import SQLpy
 import odbc
 import KBButton
 import log_def
@@ -113,7 +112,6 @@ def search_ingr(h):
         # Идем в триггер базы и получаем 1 значение
         cur.execute("Insert into Ingredients values (?)", kur)
         rows = cur.fetchall()
-       #SQLpy.testjhed(rows)
         count = 0
         log_def.log_search_1(rows)
         for row in rows:
@@ -124,7 +122,6 @@ def search_ingr(h):
                     for i in s:
                         if i == row.id_ingredients:
                             count += 1
-                            # s.append(row.id_ingredients)
                     if count == 0:
                         s.append(row.id_ingredients)
                         bot.send_message(h.chat.id, "Такой продукт есть у нас в базе, вводи следующий")
@@ -191,12 +188,10 @@ def search_ingr(h):
             for row in rows:
                 LoggerHelper.LogInfo('Output_Screen -')
                 photo1 = open('Photo/' + str(i) + '.jpg', 'rb')
-                # print('Photo/' + str(ing) + '.jpg')
                 bot.send_photo(h.chat.id, photo1)
                 bot.send_message(h.chat.id, "Название: " + str(row.Recipe_name))
                 bot.send_message(h.chat.id, "Кухня: " + str(row.Kitchen_name))
                 bot.send_message(h.chat.id, "Категория блюда: " + str(row.Category_name))
-                # bot.send_message(h.chat.id, "Метод: " + row.Method_name)
                 bot.send_message(h.chat.id, str(row.Taste_name))
                 bot.send_message(h.chat.id, "Метод приготовления: " + str(row.Description_cooking_method))
                 bot.send_message(h.chat.id, "Количество калорий: " + str(row.Caloric_content))

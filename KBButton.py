@@ -30,5 +30,6 @@ def inline_start_menu():
 
 
 def res_kb_rep():
+    LoggerHelper.LogInfo("KyBoard_Res -")
     markup = types.ReplyKeyboardRemove()
     return markup
